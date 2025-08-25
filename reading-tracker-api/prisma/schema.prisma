@@ -13,3 +13,76 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  password     String
+  totalPoints  Int      @default(0)
+  currentLevel Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  books  Book[]
+  badges Badge[]
+
+  @@map("users")
+}
+
+model Book {
+  id            String     @id @default(cuid())
+  title         String
+  author        String
+  totalPages    Int
+  currentPage   Int        @default(0)
+  category      String
+  status        BookStatus @default(READING)
+  pointsEarned  Int        @default(0)
+  startDate     DateTime   @default(now())
+  completedDate DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Foreign Key
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("books")
+}
+
+model Badge {
+  id          String    @id @default(cuid())
+  type        BadgeType
+  name        String
+  description String
+  unlockedAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+
+  // Foreign Key
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@map("badges")
+}
+
+enum BookStatus {
+  READING
+  COMPLETED
+  PAUSED
+  ABANDONED
+}
+
+enum BadgeType {
+  FIRST_BOOK
+  READER_5_BOOKS
+  BIBLIOPHILE_20_BOOKS
+  GENRE_EXPLORER_3
+  LITERARY_ADVENTURER_5
+  SPEED_READER
+  MARATHON_READER
+  MONTHLY_10_BOOKS
+  YEARLY_30_BOOKS
+}
